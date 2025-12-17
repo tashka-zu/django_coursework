@@ -9,7 +9,7 @@ class Client(models.Model):
         return self.email
 
 class Message(models.Model):
-    subject = models.CharField(max_length=200, verbose_name='Тема письма')
+    subject = models.CharField(max_length=255, verbose_name='Тема письма')
     body = models.TextField(verbose_name='Тело письма')
 
     def __str__(self):

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.messages import Message
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
@@ -5,8 +6,8 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from .forms import MailingForm
-from .models import Mailing, Client
-from .services import send_mailing
+from .models import Mailing, Client, Message
+from .services import send_mailing, send_confirmation_email
 
 @require_POST
 def send_mailing_view(request, pk):
@@ -66,6 +67,23 @@ class MailingListView(ListView):
     template_name = 'mailing/mailing_list.html'
     context_object_name = 'mailings'
 
+    def post(self, request, *args, **kwargs):
+        mailing_id = request.POST.get('mailing_id')
+        mailing = Mailing.objects.get(id=mailing_id)
+
+        # Получаем список клиентов для рассылки
+        clients = mailing.recipients.all()
+
+        # Отправляем письма
+        for client in clients:
+            subject = mailing.message.subject
+            message = mailing.message.body
+            recipient_list = [client.email]
+
+            send_confirmation_email(subject, message, recipient_list)
+
+        return redirect('mailing_list')
+
 class MailingCreateView(CreateView):
     model = Mailing
     form_class = MailingForm
@@ -92,3 +110,15 @@ def index(request):
         'active_mailings': active_mailings,
         'unique_clients': unique_clients,
     })
+
+User = get_user_model()
+
+def register_user(request):
+    if request.method == 'POST':
+        user = User.objects.create_user(
+            email=request.POST['email'],
+            password=request.POST['password']
+        )
+        send_confirmation_email(user)
+        return redirect('login')
+    return render(request, 'mailing/register.html')
