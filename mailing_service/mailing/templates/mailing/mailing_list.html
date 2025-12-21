@@ -1,21 +1,32 @@
 {% extends 'mailing/base.html' %}
 
 {% block content %}
-<h1>Список рассылок</h1>
-<a href="{% url 'mailing_create' %}">Добавить рассылку</a>
-<ul>
-    {% for mailing in mailings %}
-    <li>
-        {{ mailing }} ({{ mailing.status }})
-        <a href="{% url 'mailing_update' mailing.pk %}">Редактировать</a>
-        <a href="{% url 'mailing_delete' mailing.pk %}">Удалить</a>
-        <form method="post" action="{% url 'send_mailing' mailing.pk %}" style="display: inline;">
-            {% csrf_token %}
-            <button type="submit">Отправить</button>
-        </form>
-    </li>
-    {% empty %}
-    <p>Рассылок пока нет.</p>
-    {% endfor %}
-</ul>
+<div class="container mt-4">
+    <h1>Список рассылок</h1>
+    <a href="{% url 'mailing_create' %}" class="btn btn-primary mb-3">Добавить рассылку</a>
+
+    <ul class="list-group">
+        {% for mailing in object_list %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {{ mailing }} ({{ mailing.status }})
+            </div>
+            <div>
+                {% if user == mailing.owner or perms.mailing.can_view_all_mailings %}
+                    <a href="{% url 'mailing_update' mailing.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                    <a href="{% url 'mailing_delete' mailing.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                    <form method="post" action="{% url 'send_mailing' mailing.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Отправить</button>
+                    </form>
+                {% endif %}
+            </div>
+        </li>
+        {% empty %}
+        <p class="text-muted">Рассылок пока нет.</p>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
+
+

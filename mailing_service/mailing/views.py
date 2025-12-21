@@ -1,8 +1,14 @@
-from django.contrib.messages import Message
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from .models import Message
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 from .forms import MailingForm
 from .models import Mailing, Client
@@ -14,11 +20,18 @@ def send_mailing_view(request, pk):
     send_mailing(mailing)
     return redirect('mailing_list')
 
-# Client Views
-class ClientListView(ListView):
+
+class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Client
-    template_name = 'mailing/client_list.html'
-    context_object_name = 'clients'
+    template_name = 'mailing/client_list.html'  # Убедись, что шаблон указан правильно
+
+    def get_queryset(self):
+        if self.request.user.groups.filter(name='Managers').exists():
+            return Client.objects.all()
+        return Client.objects.filter(owner=self.request.user)
+
+    def test_func(self):
+        return self.request.user.is_authenticated
 
 class ClientCreateView(CreateView):
     model = Client
@@ -61,10 +74,17 @@ class MessageDeleteView(DeleteView):
     success_url = reverse_lazy('message_list')
 
 # Mailing Views
-class MailingListView(ListView):
+class MailingListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Mailing
-    template_name = 'mailing/mailing_list.html'
-    context_object_name = 'mailings'
+    template_name = 'mailing/mailing_list.html'  # Убедись, что шаблон указан правильно
+
+    def get_queryset(self):
+        if self.request.user.groups.filter(name='Managers').exists():
+            return Mailing.objects.all()
+        return Mailing.objects.filter(owner=self.request.user)
+
+    def test_func(self):
+        return self.request.user.is_authenticated
 
 class MailingCreateView(CreateView):
     model = Mailing
@@ -92,3 +112,30 @@ def index(request):
         'active_mailings': active_mailings,
         'unique_clients': unique_clients,
     })
+
+@method_decorator(cache_page(60 * 15), name='dispatch')
+class MailingStatisticsView(LoginRequiredMixin, TemplateView):
+    template_name = 'mailing/statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        mailings = Mailing.objects.filter(owner=self.request.user)
+        statistics = []
+        for mailing in mailings:
+            stats = mailing.get_statistics()
+            stats['mailing'] = mailing
+            statistics.append(stats)
+        context['statistics'] = statistics
+        return context
+
+
+class BlockUserView(UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.groups.filter(name='Managers').exists()
+
+    def post(self, request, user_id):
+        user = User.objects.get(pk=user_id)
+        user.is_active = False
+        user.save()
+        messages.success(request, f'Пользователь {user.username} заблокирован.')
+        return redirect('user_list')
