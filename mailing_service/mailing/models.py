@@ -1,4 +1,11 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+def get_default_owner():
+    user = User.objects.filter(is_superuser=True).first()
+    return user.id
 
 class Client(models.Model):
     email = models.EmailField(unique=True, verbose_name='Email')
@@ -8,8 +15,15 @@ class Client(models.Model):
     def __str__(self):
         return self.email
 
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Владелец',
+        default=get_default_owner  # Значение по умолчанию
+    )
+
 class Message(models.Model):
-    subject = models.CharField(max_length=200, verbose_name='Тема письма')
+    subject = models.CharField(max_length=255, verbose_name='Тема письма')
     body = models.TextField(verbose_name='Тело письма')
 
     def __str__(self):
@@ -31,17 +45,42 @@ class Mailing(models.Model):
     def __str__(self):
         return f"Рассылка {self.id} ({self.status})"
 
+    def get_statistics(self):
+        attempts = self.mailingattempt_set.all()
+        success_count = attempts.filter(status='success').count()
+        failed_count = attempts.filter(status='failed').count()
+        return {
+            'success_count': success_count,
+            'failed_count': failed_count,
+            'total_attempts': attempts.count(),
+        }
+
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Владелец',
+        default=get_default_owner  # Значение по умолчанию
+    )
+
+    class Meta:
+        permissions = [
+            ('can_view_all_mailings', 'Может просматривать все рассылки'),
+            ('can_disable_mailings', 'Может отключать рассылки'),
+        ]
+
 
 class MailingAttempt(models.Model):
-    STATUS_CHOICES = [
-        ('Успешно', 'Успешно'),
-        ('Не успешно', 'Не успешно'),
-    ]
-
-    attempt_time = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время попытки')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Статус')
-    server_response = models.TextField(blank=True, verbose_name='Ответ почтового сервера')
-    mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE, verbose_name='Рассылка')
+    mailing = models.ForeignKey('Mailing', on_delete=models.CASCADE, verbose_name='Рассылка')
+    attempt_time = models.DateTimeField(auto_now_add=True, verbose_name='Время попытки')
+    status = models.CharField(max_length=20, choices=[
+        ('success', 'Успешно'),
+        ('failed', 'Не успешно'),
+    ], verbose_name='Статус')
+    server_response = models.TextField(blank=True, null=True, verbose_name='Ответ сервера')
 
     def __str__(self):
-        return f"Попытка {self.id} ({self.status})"
+        return f"Попытка {self.mailing} - {self.status}"
+
+    class Meta:
+        verbose_name = 'Попытка рассылки'
+        verbose_name_plural = 'Попытки рассылок'

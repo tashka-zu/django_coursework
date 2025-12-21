@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import MailingStatisticsView, BlockUserView
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -17,9 +18,12 @@ urlpatterns = [
 
     # Mailing URLs
     path('', views.index, name='index'),
-    path('mailings/', views.MailingListView.as_view(), name='mailing_list'),  # Этот маршрут должен существовать
+    path('mailings/', views.MailingListView.as_view(), name='mailing_list'),
     path('mailings/create/', views.MailingCreateView.as_view(), name='mailing_create'),
     path('mailings/<int:pk>/update/', views.MailingUpdateView.as_view(), name='mailing_update'),
     path('mailings/<int:pk>/delete/', views.MailingDeleteView.as_view(), name='mailing_delete'),
     path('mailings/<int:pk>/send/', views.send_mailing_view, name='send_mailing'),
+
+    path('statistics/', MailingStatisticsView.as_view(), name='mailing_statistics'),
+    path('users/<int:user_id>/block/', BlockUserView.as_view(), name='block_user'),
 ]
