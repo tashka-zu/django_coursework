@@ -9,6 +9,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, T
 from .models import Message
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.cache import cache
 
 from .forms import MailingForm
 from .models import Mailing, Client
@@ -20,7 +21,7 @@ def send_mailing_view(request, pk):
     send_mailing(mailing)
     return redirect('mailing_list')
 
-
+@method_decorator(cache_page(60 * 15), name='dispatch')
 class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Client
     template_name = 'mailing/client_list.html'  # Убедись, что шаблон указан правильно
@@ -73,7 +74,7 @@ class MessageDeleteView(DeleteView):
     template_name = 'mailing/message_confirm_delete.html'
     success_url = reverse_lazy('message_list')
 
-# Mailing Views
+@method_decorator(cache_page(60 * 15), name='dispatch')
 class MailingListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Mailing
     template_name = 'mailing/mailing_list.html'  # Убедись, что шаблон указан правильно
@@ -113,18 +114,23 @@ def index(request):
         'unique_clients': unique_clients,
     })
 
-@method_decorator(cache_page(60 * 15), name='dispatch')
 class MailingStatisticsView(LoginRequiredMixin, TemplateView):
     template_name = 'mailing/statistics.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        mailings = Mailing.objects.filter(owner=self.request.user)
-        statistics = []
-        for mailing in mailings:
-            stats = mailing.get_statistics()
-            stats['mailing'] = mailing
-            statistics.append(stats)
+        cache_key = f'mailing_statistics_{self.request.user.id}'
+        statistics = cache.get(cache_key)
+
+        if not statistics:
+            mailings = Mailing.objects.filter(owner=self.request.user)
+            statistics = []
+            for mailing in mailings:
+                stats = mailing.get_statistics()
+                stats['mailing'] = mailing
+                statistics.append(stats)
+            cache.set(cache_key, statistics, 60 * 15)  # Кешировать на 15 минут
+
         context['statistics'] = statistics
         return context
 
