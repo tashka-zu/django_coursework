@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import MailingStatisticsView, BlockUserView
+from .views import MailingStatisticsView, BlockUserView, ClientListView, ClientCreateView
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -26,4 +26,6 @@ urlpatterns = [
 
     path('statistics/', MailingStatisticsView.as_view(), name='mailing_statistics'),
     path('users/<int:user_id>/block/', BlockUserView.as_view(), name='block_user'),
+    path('clients/', ClientListView.as_view(), name='client_list'),
+    path('clients/create/', ClientCreateView.as_view(), name='client_create'),
 ]

@@ -22,23 +22,22 @@ def send_mailing_view(request, pk):
     return redirect('mailing_list')
 
 @method_decorator(cache_page(60 * 15), name='dispatch')
-class ClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class ClientListView(LoginRequiredMixin, ListView):
     model = Client
-    template_name = 'mailing/client_list.html'  # Убедись, что шаблон указан правильно
 
     def get_queryset(self):
         if self.request.user.groups.filter(name='Managers').exists():
             return Client.objects.all()
         return Client.objects.filter(owner=self.request.user)
 
-    def test_func(self):
-        return self.request.user.is_authenticated
-
-class ClientCreateView(CreateView):
+class ClientCreateView(LoginRequiredMixin, CreateView):
     model = Client
-    template_name = 'mailing/client_form.html'
     fields = ['email', 'full_name', 'comment']
-    success_url = reverse_lazy('client_list')
+    success_url = '/clients/'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 class ClientUpdateView(UpdateView):
     model = Client
@@ -87,11 +86,19 @@ class MailingListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         return self.request.user.is_authenticated
 
-class MailingCreateView(CreateView):
+class MailingCreateView(LoginRequiredMixin, CreateView):
     model = Mailing
     form_class = MailingForm
-    template_name = 'mailing/mailing_form.html'
-    success_url = reverse_lazy('mailing_list')
+    success_url = '/mailings/'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 class MailingUpdateView(UpdateView):
     model = Mailing
@@ -115,23 +122,15 @@ def index(request):
     })
 
 class MailingStatisticsView(LoginRequiredMixin, TemplateView):
-    template_name = 'mailing/statistics.html'
+    template_name = 'mailing/mailing_statistics.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cache_key = f'mailing_statistics_{self.request.user.id}'
-        statistics = cache.get(cache_key)
-
-        if not statistics:
+        if self.request.user.groups.filter(name='Managers').exists():
+            mailings = Mailing.objects.all()
+        else:
             mailings = Mailing.objects.filter(owner=self.request.user)
-            statistics = []
-            for mailing in mailings:
-                stats = mailing.get_statistics()
-                stats['mailing'] = mailing
-                statistics.append(stats)
-            cache.set(cache_key, statistics, 60 * 15)  # Кешировать на 15 минут
-
-        context['statistics'] = statistics
+        context['mailings'] = mailings
         return context
 
 
