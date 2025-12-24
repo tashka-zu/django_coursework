@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Статистика рассылок</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Статус</th>
+                <th>Время начала</th>
+                <th>Время окончания</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mailing in mailings %}
+            <tr>
+                <td>{{ mailing.name }}</td>
+                <td>{{ mailing.status }}</td>
+                <td>{{ mailing.start_time }}</td>
+                <td>{{ mailing.end_time }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Рассылок пока нет.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

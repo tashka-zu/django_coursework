@@ -1,4 +1,4 @@
-{% extends 'mailing/base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-4">
@@ -12,10 +12,8 @@
                 {{ client.email }} ({{ client.full_name }})
             </div>
             <div>
-                {% if user == client.owner or perms.mailing.can_view_all_clients %}
-                    <a href="{% url 'client_update' client.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
-                    <a href="{% url 'client_delete' client.pk %}" class="btn btn-sm btn-danger">Удалить</a>
-                {% endif %}
+                <a href="{% url 'client_update' client.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                <a href="{% url 'client_delete' client.pk %}" class="btn btn-sm btn-danger">Удалить</a>
             </div>
         </li>
         {% empty %}
@@ -24,4 +22,3 @@
     </ul>
 </div>
 {% endblock %}
-

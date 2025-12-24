@@ -1,0 +1,15 @@
+{% load i18n %}
+{% autoescape off %}
+<h2>{% trans "Здравствуйте!" %}</h2>
+<p>
+    {% blocktrans with site_name="Сервис Рассылок" %}
+    Вы получили это письмо, потому что зарегистрировались на {{ site_name }}. Пожалуйста, перейдите по ссылке ниже, чтобы подтвердить свой адрес электронной почты:
+    {% endblocktrans %}
+</p>
+<p><a href="{{ activate_url }}">{{ activate_url }}</a></p>
+<p>
+    {% blocktrans with site_name="Сервис Рассылок" %}
+    Если вы не регистрировались на {{ site_name }}, просто проигнорируйте это письмо.
+    {% endblocktrans %}
+</p>
+{% endautoescape %}

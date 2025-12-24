@@ -4,6 +4,7 @@ from .models import Client, Message, Mailing, MailingAttempt
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = ('email', 'full_name', 'comment')
+    search_fields = ('email', 'full_name')
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
