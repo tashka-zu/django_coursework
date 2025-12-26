@@ -8,7 +8,8 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('subject',)
+    list_display = ('title', 'owner')
+    search_fields = ('title',)
 
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):

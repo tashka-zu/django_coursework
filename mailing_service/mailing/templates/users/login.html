@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Вход" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "Вход" %}</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary" type="submit">{% trans "Войти" %}</button>
+                    </div>
+                </form>
+                <div class="border-top mt-4 pt-3 text-center">
+                    <small class="text-muted">
+                        {% trans "Ещё нет аккаунта?" %}
+                        <a href="{% url 'register' %}">{% trans "Зарегистрируйтесь." %}</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
