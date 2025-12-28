@@ -14,4 +14,4 @@ class CustomLoginView(LoginView):
     success_url = reverse_lazy('home')
 
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('home')
+    next_page = '/'
