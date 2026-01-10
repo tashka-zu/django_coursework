@@ -5,13 +5,13 @@ from .forms import CustomUserCreationForm, CustomAuthenticationForm
 
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('mailing:index')
     template_name = 'users/register.html'
 
 class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = 'users/login.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('mailing:index')
 
 class CustomLogoutView(LogoutView):
     next_page = '/'
