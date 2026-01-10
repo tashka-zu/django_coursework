@@ -3,24 +3,12 @@ from django.conf import settings
 from .models import MailingAttempt
 
 def send_mailing(mailing):
-    recipients = mailing.recipients.all()
+    recipients = mailing.clients.all()
     for recipient in recipients:
-        try:
-            send_mail(
-                subject=mailing.message.subject,
-                message=mailing.message.body,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient.email],
-                fail_silently=False,
-            )
-            MailingAttempt.objects.create(
-                mailing=mailing,
-                status='success',
-                server_response='Письмо отправлено'
-            )
-        except Exception as e:
-            MailingAttempt.objects.create(
-                mailing=mailing,
-                status='failed',
-                server_response=str(e)
-            )
+        send_mail(
+            mailing.message.title,
+            mailing.message.body,
+            settings.DEFAULT_FROM_EMAIL,
+            [recipient.email],
+            fail_silently=False,
+        )

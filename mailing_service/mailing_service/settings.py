@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8hg@0u6revjdznknwept-b+y0)4271t4k)v#9hq+7aa4!+c0m*'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 
     'mailing',
+    'users',
 ]
 
 SITE_ID = 1
@@ -52,9 +53,7 @@ ROOT_URLCONF = 'mailing_service.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,6 +121,16 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
 # Исправленные настройки allauth
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_METHODS = ['email']
@@ -138,10 +147,10 @@ ACCOUNT_EMAIL_CONFIRMATION_TEMPLATE = 'account/email/email_confirmation_message.
 
 # Настройки для email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'zubkovanataska21@gmail.com'
-EMAIL_HOST_PASSWORD = 'qlbl gmtz rhef txzi'
-DEFAULT_FROM_EMAIL = 'zubkovanataska21@gmail.com'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = os.getenv('EMAIL_PORT', 587)
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', False)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
