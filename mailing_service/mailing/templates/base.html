@@ -32,6 +32,19 @@
             border: none;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        .navbar-nav.ms-auto.d-flex.align-items-center .nav-item {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-nav.ms-auto.d-flex.align-items-center .nav-link {
+            padding: 0.5rem 1rem;
+        }
+        .navbar-nav.ms-auto.d-flex.align-items-center form.d-inline {
+            padding: 0.5rem 1rem;
+        }
+        .navbar-nav.ms-auto.d-flex.align-items-center button.btn.btn-link.nav-link {
+            padding: 0.5rem 1rem;
+        }
     </style>
     {% block extra_head %}
     {% endblock %}
@@ -62,11 +75,15 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <form method="post" action="{% url 'users:logout' %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link nav-link p-0 m-0 align-baseline">Выход</button>
-                            </form>
+                            <a class="nav-link" href="{% url 'users:profile' %}">Профиль</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            Выход
+                            </a>
+                        <form id="logout-form" method="post" action="{% url 'users:logout' %}" class="d-none">
+                        {% csrf_token %}
+                        </form>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'users:login' %}">Вход</a>
