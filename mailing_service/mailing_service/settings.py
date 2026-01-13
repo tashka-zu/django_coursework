@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     'users',
 ]
 
+
+LOGIN_URL = "users:login"
+
 SITE_ID = 1
 
 MIDDLEWARE = [

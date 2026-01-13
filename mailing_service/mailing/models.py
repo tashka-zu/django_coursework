@@ -47,7 +47,7 @@ class Mailing(models.Model):
     ]
     periodicity = models.CharField(max_length=10, choices=PERIOD_CHOICES, verbose_name='Периодичность')
     status = models.CharField(max_length=20, default='created', verbose_name='Статус')
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Рассылка'
